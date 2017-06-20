@@ -20,95 +20,28 @@
 // Iterator operations [iterator.operations]
 // Not to spec: All constexpr per P0579.
 STL2_OPEN_NAMESPACE {
+	Iterator{I} class counted_iterator;
+
 	// advance
-	namespace __advance {
-		template <class I>
-		requires
-			Iterator<I>
-			// Pre: 0 <= n && [i,i+n)
-		constexpr void impl(I& i, difference_type_t<I> n)
-		noexcept(noexcept(++std::declval<I&>()))
+	struct __advance_fn {
+		Iterator{I}
+		static constexpr void impl(I& i, difference_type_t<I> n)
+		noexcept(noexcept(++i))
 		{
+			// Pre: 0 <= n && [i,i+n)
 			STL2_EXPECT(0 <= n);
 			while (n != 0) {
 				--n;
 				++i;
 			}
 		}
-	}
 
-	Iterator{I}
-		// Pre: 0 <= n && [i,i+n)
-	constexpr void advance(I& i, difference_type_t<I> n)
-	noexcept(noexcept(++std::declval<I&>()))
-	{
-		__advance::impl(i, n);
-	}
-
-	BidirectionalIterator{I}
-		// Pre: 0 <= n ? [i,i+n) : [i+n,i)
-	constexpr void advance(I& i, difference_type_t<I> n)
-	noexcept(noexcept(++std::declval<I&>(), --std::declval<I&>()))
-	{
-		if (0 <= n) {
-			__advance::impl(i, n);
-		} else {
-			do {
-				++n;
-				--i;
-			} while (n != 0);
-		}
-	}
-
-	RandomAccessIterator{I}
-		// Pre: 0 <= n ? [i,i+n) : [i+n,i)
-	constexpr void advance(I& i, difference_type_t<I> n)
-	STL2_NOEXCEPT_RETURN(
-		(void)(i += n)
-	)
-
-	template <class I, class S>
-	requires
-		Sentinel<S, I>
-		// Pre: [i,bound)
-	constexpr void advance(I& i, S bound)
-	noexcept(noexcept(++i != bound))
-	{
-		while (i != bound) {
-			++i;
-		}
-	}
-
-	template <class I, class S>
-	requires
-		Sentinel<S, I> && Assignable<I&, S&&>
-	constexpr void advance(I& i, S bound)
-	STL2_NOEXCEPT_RETURN(
-		(void)(i = std::move(bound))
-	)
-
-	template <class I, class S>
-	requires
-		Sentinel<S, I> && !Assignable<I&, S&&> &&
-		SizedSentinel<S, I>
-		// Pre: [i,bound)
-	constexpr void advance(I& i, S bound)
-	noexcept(noexcept(__stl2::advance(i, bound - i)))
-	{
-		difference_type_t<I> d = bound - i;
-		STL2_EXPECT(0 <= d);
-		__stl2::advance(i, d);
-	}
-
-	namespace __advance {
-		template <class I, class S>
-		requires
-			Sentinel<S, I>
-			// Pre: 0 == n || (0 < n && [i,bound))
-		constexpr difference_type_t<I>
-		impl(I& i, difference_type_t<I> n, const S& bound)
+		Sentinel{S, I}
+		static constexpr difference_type_t<I>
+		impl(I& i, difference_type_t<I> n, S bound)
 		noexcept(noexcept(++i != bound))
 		{
+			// Pre: 0 == n || (0 < n && [i,bound))
 			STL2_EXPECT(0 <= n);
 			while (n != 0 && i != bound) {
 				++i;
@@ -116,78 +49,149 @@ STL2_OPEN_NAMESPACE {
 			}
 			return n;
 		}
-	}
 
-	template <class I, class S>
-	requires
-		Sentinel<S, I>
-		// Pre: 0 == n || (0 < n && [i,bound))
-	constexpr difference_type_t<I>
-	advance(I& i, difference_type_t<I> n, S bound)
-	STL2_NOEXCEPT_RETURN(
-		__advance::impl(i, n, bound)
-	)
-
-	template <class I, class S>
-	requires
-		Sentinel<S, I> && SizedSentinel<S, I>
-		// Pre: 0 <= n && [i,bound)
-	constexpr difference_type_t<I>
-	advance(I& i, difference_type_t<I> n, S bound)
-	noexcept(noexcept(
-		__stl2::advance(i, std::move(bound)),
-		__stl2::advance(i, bound - i)))
-	{
-		STL2_EXPECT(0 <= n);
-		auto d = difference_type_t<I>{bound - i};
-		STL2_EXPECT(0 <= d);
-		if (d <= n) {
-			__stl2::advance(i, std::move(bound));
-			return n - d;
-		}
-		__stl2::advance(i, n);
-		return 0;
-	}
-
-	template <class I>
-	requires
-		BidirectionalIterator<I>
-		// Pre: 0 == n || (0 < n ? [i,bound) : [bound,i))
-	constexpr difference_type_t<I>
-	advance(I& i, difference_type_t<I> n, I bound)
-	noexcept(noexcept(
-		__advance::impl(i, n, bound),
-		--i != bound))
-	{
-		if (0 <= n) {
-			return __advance::impl(i, n, bound);
+		Iterator{I}
+		constexpr void operator()(I& i, difference_type_t<I> n) const
+		noexcept(noexcept(++i))
+		{
+			// Pre: 0 <= n && [i,i+n)
+			impl(i, n);
 		}
 
-		do {
-			--i;
-			++n;
-		} while (n != 0 && i != bound);
-		return n;
-	}
-
-	template <class I>
-	requires
-		BidirectionalIterator<I> && SizedSentinel<I, I>
-		// Pre: 0 == n ? ([i,bound) || [bound,i)) : (0 < n ? [i,bound) : [bound,i))
-	constexpr difference_type_t<I>
-	advance(I& i, difference_type_t<I> n, I bound)
-	noexcept(noexcept(
-		i = std::move(bound),
-		__stl2::advance(i, bound - i)))
-	{
-		auto d = difference_type_t<I>{bound - i};
-		STL2_EXPECT(0 <= n ? 0 <= d : 0 >= d);
-		if (0 <= n ? d <= n : d >= n) {
-			i = std::move(bound);
-			return n - d;
+		BidirectionalIterator{I}
+		constexpr void operator()(I& i, difference_type_t<I> n) const
+		noexcept(noexcept(++i, --i))
+		{
+			// Pre: 0 <= n ? [i,i+n) : [i+n,i)
+			if (0 <= n) {
+				impl(i, n);
+			} else {
+				do {
+					++n;
+					--i;
+				} while (n != 0);
+			}
 		}
-		__stl2::advance(i, n);
-		return 0;
+
+		RandomAccessIterator{I}
+		constexpr void operator()(I& i, difference_type_t<I> n) const
+		STL2_NOEXCEPT_RETURN(
+			// Pre: 0 <= n ? [i,i+n) : [i+n,i)
+			(void)(i += n)
+		)
+
+		Sentinel{S, I}
+		constexpr void operator()(I& i, S bound) const
+		noexcept(noexcept(++i != bound))
+		{
+			// Pre: [i,bound)
+			while (i != bound) {
+				++i;
+			}
+		}
+
+		template <class S, class I>
+		requires
+			Sentinel<S, I> && Assignable<I&, S&&>
+		constexpr void operator()(I& i, S bound) const
+		STL2_NOEXCEPT_RETURN(
+			(void)(i = std::move(bound))
+		)
+
+		template <class S, class I>
+		requires
+			Sentinel<S, I> && !Assignable<I&, S&&> &&
+			SizedSentinel<S, I>
+		constexpr void operator()(I& i, S bound) const
+		noexcept(noexcept(std::declval<const __advance_fn&>()(i, bound - i)))
+		{
+			// Pre: [i,bound)
+			difference_type_t<I> d = bound - i;
+			STL2_EXPECT(0 <= d);
+			(*this)(i, d);
+		}
+
+		Sentinel{S, I}
+		constexpr difference_type_t<I>
+		operator()(I& i, difference_type_t<I> n, S bound) const
+		STL2_NOEXCEPT_RETURN(
+			// Pre: 0 == n || (0 < n && [i,bound))
+			impl(i, n, bound)
+		)
+
+		template <class S, class I>
+		requires
+			Sentinel<S, I> && SizedSentinel<S, I>
+		constexpr difference_type_t<I>
+		operator()(I& i, difference_type_t<I> n, S bound) const
+		noexcept(noexcept(
+			std::declval<const __advance_fn&>()(i, std::move(bound)),
+			std::declval<const __advance_fn&>()(i, bound - i)))
+		{
+			// Pre: 0 <= n && [i,bound)
+			STL2_EXPECT(0 <= n);
+			auto d = difference_type_t<I>{bound - i};
+			STL2_EXPECT(0 <= d);
+			if (d <= n) {
+				(*this)(i, std::move(bound));
+				return n - d;
+			}
+			(*this)(i, n);
+			return 0;
+		}
+
+		BidirectionalIterator{I}
+		constexpr difference_type_t<I>
+		operator()(I& i, difference_type_t<I> n, I bound) const
+		noexcept(noexcept(
+			impl(i, n, bound),
+			--i != bound))
+		{
+			// Pre: 0 == n || (0 < n ? [i,bound) : [bound,i))
+			if (0 <= n) {
+				return impl(i, n, bound);
+			}
+
+			do {
+				--i;
+				++n;
+			} while (n != 0 && i != bound);
+			return n;
+		}
+
+		template <class I>
+		requires
+			BidirectionalIterator<I> && SizedSentinel<I, I>
+		constexpr difference_type_t<I>
+		advance(I& i, difference_type_t<I> n, I bound)
+		noexcept(noexcept(
+			i = std::move(bound),
+			std::declval<const __advance_fn&>()(i, bound - i)))
+		{
+			// Pre: 0 == n ? ([i,bound) || [bound,i)) : (0 < n ? [i,bound) : [bound,i))
+			auto d = difference_type_t<I>{bound - i};
+			STL2_EXPECT(0 <= n ? 0 <= d : 0 >= d);
+			if (0 <= n ? d <= n : d >= n) {
+				i = std::move(bound);
+				return n - d;
+			}
+			(*this)(i, n);
+			return 0;
+		}
+
+		// Not to spec: constexpr per P0579
+		template <Iterator I, class Self = __advance_fn>
+		constexpr void operator()(counted_iterator<I>& i, difference_type_t<I> n) const
+		noexcept(noexcept(std::declval<const Self&>()(std::declval<I&>(), n)));
+
+		// Not to spec: constexpr per P0579
+		RandomAccessIterator{I}
+		constexpr void operator()(counted_iterator<I>& i, difference_type_t<I> n) const
+		noexcept(noexcept(std::declval<I&>() += n));
+	};
+	// Workaround GCC PR66957 by declaring this unnamed namespace inline.
+	inline namespace {
+		constexpr auto& advance = detail::static_const<__advance_fn>::value;
 	}
 
 	// next

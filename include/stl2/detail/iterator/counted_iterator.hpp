@@ -27,8 +27,7 @@ STL2_OPEN_NAMESPACE {
 	Iterator{I}
 	class counted_iterator {
 		Iterator{O} friend class counted_iterator;
-		Iterator{O} friend constexpr
-		void advance(counted_iterator<O>& i, difference_type_t<O> n);
+		friend __advance_fn;
 
 		ext::compressed_pair<I, difference_type_t<I>> data_{};
 
@@ -238,21 +237,22 @@ STL2_OPEN_NAMESPACE {
 	)
 
 	// Not to spec: constexpr per P0579
-	Iterator{I}
-	constexpr void advance(counted_iterator<I>& i, difference_type_t<I> n)
-	noexcept(noexcept(__stl2::advance(std::declval<I&>(), n)))
+	template <Iterator I, class Self = __advance_fn>
+	constexpr void __advance_fn::operator()(counted_iterator<I>& i, difference_type_t<I> n) const
+	noexcept(noexcept(std::declval<const Self&>()(std::declval<I&>(), n)))
 	{
 		STL2_EXPECT(n <= i.count());
-		__stl2::advance(i.current(), n);
+		Self{}(i.current(), n);
 		i.cnt() -= n;
 	}
 
 	// Not to spec: constexpr per P0579
 	RandomAccessIterator{I}
-	constexpr void advance(counted_iterator<I>& i, difference_type_t<I> n)
-	STL2_NOEXCEPT_RETURN(
-		(STL2_EXPECT(n <= i.count()), i += n, void())
-	)
+	constexpr void __advance_fn::operator()(counted_iterator<I>& i, difference_type_t<I> n) const
+	noexcept(noexcept(std::declval<I&>() += n))
+	{
+		i += n;
+	}
 
 	namespace ext {
 		Iterator{I}
