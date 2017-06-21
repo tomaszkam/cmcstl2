@@ -189,7 +189,7 @@
     <ClInclude Include="include\stl2\detail\range\concepts.hpp">
       <Filter>Header Files\cmcstl2\stl2\detail\range</Filter>
     </ClInclude>
-    <ClInclude Include="include\stl2\detail\range\primitives.hpp">
+    <ClInclude Include="include\stl2\detail\range\begin_end_size.hpp">
       <Filter>Header Files\cmcstl2\stl2\detail\range</Filter>
     </ClInclude>
     <ClInclude Include="include\stl2\detail\variant\fwd.hpp">
@@ -470,9 +470,6 @@
     </ClInclude>
     <ClInclude Include="include\stl2\detail\temporary_vector.hpp">
       <Filter>Header Files\cmcstl2\stl2\detail</Filter>
-    </ClInclude>
-    <ClInclude Include="include\stl2\detail\iterator\dangling.hpp">
-      <Filter>Header Files\cmcstl2\stl2\detail\iterator</Filter>
     </ClInclude>
     <ClInclude Include="include\stl2\detail\range\range.hpp">
       <Filter>Header Files\cmcstl2\stl2\detail\range</Filter>

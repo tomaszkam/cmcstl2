@@ -1,6 +1,6 @@
 // cmcstl2 - A concept-enabled C++ standard library
 //
-//  Copyright Casey Carter 2015
+//  Copyright Casey Carter 2015, 2017
 //
 //  Use, modification and distribution is subject to the
 //  Boost Software License, Version 1.0. (See accompanying
@@ -19,127 +19,12 @@
 #include <stl2/detail/iterator/concepts.hpp>
 #include <stl2/detail/iterator/reverse_iterator.hpp>
 #include <stl2/detail/memory/addressof.hpp>
+#include <stl2/detail/range/begin_end_size.hpp>
 
 ///////////////////////////////////////////////////////////////////////////
 // Range access [iterator.range]
 //
 STL2_OPEN_NAMESPACE {
-	// begin
-	namespace __begin {
-		// Poison pill for std::begin. (See the detailed discussion at
-		// https://github.com/ericniebler/stl2/issues/139)
-		void begin(auto&) = delete;
-
-		template <class R>
-		constexpr bool has_member = false;
-		template <class R>
-			requires requires(R& r) {
-				requires Iterator<__f<decltype(r.begin())>>;
-			}
-		constexpr bool has_member<R> = true;
-
-		template <class R>
-		constexpr bool has_non_member = false;
-		template <class R>
-		requires
-			requires(R& r) {
-				requires Iterator<__f<decltype(begin(r))>>;
-			}
-		constexpr bool has_non_member<R> = true;
-
-		struct fn {
-			template <class R, std::size_t N>
-			constexpr R* operator()(R (&array)[N]) const noexcept {
-				return array;
-			}
-			// Prefer member if it returns Iterator.
-			template <class R>
-			requires has_member<R>
-			constexpr Iterator
-			operator()(R& r) const
-			STL2_NOEXCEPT_RETURN(
-				r.begin()
-			)
-			// Use ADL if it returns Iterator.
-			template <class R>
-			requires !has_member<R> && has_non_member<R>
-			constexpr Iterator
-			operator()(R& r) const
-			STL2_NOEXCEPT_RETURN(
-				begin(r)
-			)
-			template <_IsNot<is_array> R>
-			[[deprecated]] constexpr Iterator
-			operator()(const R&& r) const
-			noexcept(noexcept(declval<const fn&>()(r)))
-			requires has_member<const R> || has_non_member<const R>
-			{
-				return (*this)(r);
-			}
-		};
-	}
-	// Workaround GCC PR66957 by declaring this unnamed namespace inline.
-	inline namespace {
-		constexpr auto& begin = detail::static_const<__begin::fn>::value;
-	}
-
-	// end
-	namespace __end {
-		// Poison pill for std::end. (See the detailed discussion at
-		// https://github.com/ericniebler/stl2/issues/139)
-		void end(auto&) = delete;
-
-		template <class R>
-		constexpr bool has_member = false;
-		template <class R>
-		requires
-			requires(R& r) {
-				requires Sentinel<__f<decltype(r.end())>, decltype(__stl2::begin(r))>;
-			}
-		constexpr bool has_member<R> = true;
-
-		template <class R>
-		constexpr bool has_non_member = false;
-		template <class R>
-		requires
-			requires(R& r) {
-				requires Sentinel<__f<decltype(end(r))>, decltype(__stl2::begin(r))>;
-			}
-		constexpr bool has_non_member<R> = true;
-
-		struct fn {
-			template <class R, std::size_t N>
-			constexpr R* operator()(R (&array)[N]) const noexcept {
-				return array + N;
-			}
-			// Prefer member if it returns Sentinel.
-			template <class R>
-			requires has_member<R>
-			constexpr auto operator()(R& r) const
-			STL2_NOEXCEPT_RETURN(
-				r.end()
-			)
-			// Use ADL if it returns Sentinel.
-			template <class R>
-			requires !has_member<R> && has_non_member<R>
-			constexpr auto operator()(R& r) const
-			STL2_NOEXCEPT_RETURN(
-				end(r)
-			)
-			template <_IsNot<is_array> R>
-			[[deprecated]] constexpr auto operator()(const R&& r) const
-			noexcept(noexcept(declval<const fn&>()(r)))
-			requires has_member<const R> || has_non_member<const R>
-			{
-				return (*this)(r);
-			}
-		};
-	}
-	// Workaround GCC PR66957 by declaring this unnamed namespace inline.
-	inline namespace {
-		constexpr auto& end = detail::static_const<__end::fn>::value;
-	}
-
 	// cbegin
 	namespace __cbegin {
 		struct fn {
@@ -344,71 +229,6 @@ STL2_OPEN_NAMESPACE {
 	///////////////////////////////////////////////////////////////////////////
 	// Container access [iterator.container]
 	//
-	// size
-	namespace __size {
-		// Poison pill for std::size. (See the detailed discussion at
-		// https://github.com/ericniebler/stl2/issues/139)
-		void size(const auto&) = delete;
-
-		template <class R>
-		constexpr bool has_member = false;
-		template <class R>
-		requires
-			requires(const R& r) {
-				requires Integral<__f<decltype(r.size())>>;
-			}
-		constexpr bool has_member<R> = true;
-
-		template <class R>
-		constexpr bool has_non_member = false;
-		template <class R>
-		requires
-			requires(const R& r) {
-				requires Integral<__f<decltype(size(r))>>;
-			}
-		constexpr bool has_non_member<R> = true;
-
-		template <class R>
-		constexpr bool has_difference = false;
-		template <class R>
-		requires
-			requires(const R& r) {
-				requires SizedSentinel<decltype(__stl2::end(r)), decltype(__stl2::begin(r))>;
-			}
-		constexpr bool has_difference<R> = true;
-
-		struct fn {
-			template <class T, std::size_t N>
-			constexpr std::size_t operator()(T(&)[N]) const noexcept {
-				return N;
-			}
-			// Prefer member
-			template <class R>
-			requires has_member<R>
-			constexpr auto operator()(const R& r) const
-			STL2_NOEXCEPT_RETURN(
-				r.size()
-			)
-			// Use non-member
-			template <class R>
-			requires !has_member<R> && has_non_member<R>
-			constexpr auto operator()(const R& r) const
-			STL2_NOEXCEPT_RETURN(
-				size(r)
-			)
-			template <class R>
-			requires !has_member<R> && !has_non_member<R> && has_difference<R>
-			constexpr auto operator()(const R& r) const
-			STL2_NOEXCEPT_RETURN(
-				__stl2::end(r) - __stl2::begin(r)
-			)
-		};
-	}
-	// Workaround GCC PR66957 by declaring this unnamed namespace inline.
-	inline namespace {
-		constexpr auto& size = detail::static_const<__size::fn>::value;
-	}
-
 	// empty
 	namespace __empty {
 		template <class R>

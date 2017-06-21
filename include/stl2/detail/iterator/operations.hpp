@@ -15,6 +15,7 @@
 #include <stl2/detail/fwd.hpp>
 #include <stl2/detail/iterator/concepts.hpp>
 #include <stl2/detail/concepts/object.hpp>
+#include <stl2/detail/range/begin_end_size.hpp>
 
 ///////////////////////////////////////////////////////////////////////////
 // Iterator operations [iterator.operations]
@@ -179,12 +180,10 @@ STL2_OPEN_NAMESPACE {
 			return 0;
 		}
 
-		// Not to spec: constexpr per P0579
 		template <Iterator I, class Self = __advance_fn>
 		constexpr void operator()(counted_iterator<I>& i, difference_type_t<I> n) const
 		noexcept(noexcept(std::declval<const Self&>()(std::declval<I&>(), n)));
 
-		// Not to spec: constexpr per P0579
 		RandomAccessIterator{I}
 		constexpr void operator()(counted_iterator<I>& i, difference_type_t<I> n) const
 		noexcept(noexcept(std::declval<I&>() += n));
@@ -256,71 +255,110 @@ STL2_OPEN_NAMESPACE {
 	}
 
 	namespace ext {
-		Sentinel{S, I}
-		constexpr tagged_pair<tag::count(difference_type_t<I>), tag::end(I)>
-		enumerate(I first, S last)
-		noexcept(noexcept(++first != last) &&
-			std::is_nothrow_move_constructible<I>::value)
-		{
-			difference_type_t<I> n = 0;
-			while (first != last) {
-				++n;
-				++first;
+		struct __enumerate_fn {
+			Sentinel{S, I}
+			constexpr tagged_pair<tag::count(difference_type_t<I>), tag::end(I)>
+			operator()(I first, S last) const
+			noexcept(noexcept(++first != last) &&
+				std::is_nothrow_move_constructible<I>::value)
+			{
+				difference_type_t<I> n = 0;
+				while (first != last) {
+					++n;
+					++first;
+				}
+				return {n, std::move(first)};
 			}
-			return {n, std::move(first)};
-		}
 
-		SizedSentinel{S, I}
-		constexpr tagged_pair<tag::count(difference_type_t<I>), tag::end(I)>
-		enumerate(I first, S last)
-		noexcept(noexcept(__stl2::next(std::move(first), std::move(last))) &&
-			std::is_nothrow_move_constructible<I>::value)
-		{
-			auto d = last - first;
-			STL2_EXPECT((models::Same<I, S> || d >= 0));
-			return {d, __stl2::next(std::move(first), std::move(last))};
-		}
+			SizedSentinel{S, I}
+			constexpr tagged_pair<tag::count(difference_type_t<I>), tag::end(I)>
+			operator()(I first, S last) const
+			noexcept(noexcept(__stl2::next(std::move(first), std::move(last))) &&
+				std::is_nothrow_move_constructible<I>::value)
+			{
+				auto d = last - first;
+				STL2_EXPECT((models::Same<I, S> || d >= 0));
+				return {d, __stl2::next(std::move(first), std::move(last))};
+			}
 
-		template <class S, class I>
-		requires
-			Sentinel<S, I> && !SizedSentinel<S, I> && SizedSentinel<I, I>
-		constexpr tagged_pair<tag::count(difference_type_t<I>), tag::end(I)>
-		enumerate(I first, S last)
-		noexcept(noexcept(__stl2::next(first, std::move(last))) &&
-			std::is_nothrow_move_constructible<I>::value)
-		{
-			auto end = __stl2::next(first, std::move(last));
-			auto n = end - first;
-			return {n, std::move(end)};
+			template <class S, class I>
+			requires
+				Sentinel<S, I> && !SizedSentinel<S, I> && SizedSentinel<I, I>
+			constexpr tagged_pair<tag::count(difference_type_t<I>), tag::end(I)>
+			operator()(I first, S last) const
+			noexcept(noexcept(__stl2::next(first, std::move(last))) &&
+				std::is_nothrow_move_constructible<I>::value)
+			{
+				auto end = __stl2::next(first, std::move(last));
+				auto n = end - first;
+				return {n, std::move(end)};
+			}
+
+			Range{R}
+			constexpr auto operator()(R&& r) const
+			STL2_NOEXCEPT_RETURN(
+				__enumerate_fn{}(__stl2::begin(r), __stl2::end(r))
+			)
+
+			SizedRange{R}
+			constexpr auto operator()(R&& r) const
+			STL2_NOEXCEPT_RETURN(
+				tagged_pair<tag::count(difference_type_t<iterator_t<R>>),
+					tag::end(safe_iterator_t<R>)>{
+					__stl2::size(r),
+					__stl2::next(__stl2::begin(r), __stl2::end(r))
+				}
+			)
+		};
+		// Workaround GCC PR66957 by declaring this unnamed namespace inline.
+		inline namespace {
+			constexpr auto& enumerate = detail::static_const<__enumerate_fn>::value;
 		}
 	}
 
 	// distance
-	Sentinel{S, I}
-		// Pre: [first, last)
-	constexpr difference_type_t<I> distance(I first, S last)
-	STL2_NOEXCEPT_RETURN(
-		ext::enumerate(std::move(first), std::move(last)).first
-	)
+	struct __distance_fn {
+		Sentinel{S, I}
+		constexpr difference_type_t<I> operator()(I first, S last) const
+		STL2_NOEXCEPT_RETURN(
+			// Pre: [first, last)
+			ext::enumerate(std::move(first), std::move(last)).first
+		)
 
-	SizedSentinel{S, I}
-		// Pre: [first, last)
-	constexpr difference_type_t<I> distance(I first, S last)
-	noexcept(noexcept(last - first))
-	{
-		auto d = last - first;
-		STL2_EXPECT(d >= 0);
-		return d;
+		SizedSentinel{S, I}
+		constexpr difference_type_t<I> operator()(I first, S last) const
+		noexcept(noexcept(last - first))
+		{
+			// Pre: [first, last)
+			auto d = last - first;
+			STL2_EXPECT(d >= 0);
+			return d;
+		}
+
+		template <class I>
+		requires SizedSentinel<I, I>
+		constexpr difference_type_t<I> operator()(I first, I last) const
+		STL2_NOEXCEPT_RETURN(
+			// Pre: [first, last) || [last, first)
+			last - first
+		)
+
+		Range{R}
+		constexpr difference_type_t<iterator_t<R>> operator()(R&& r) const
+		STL2_NOEXCEPT_RETURN(
+			__distance_fn{}(__stl2::begin(r), __stl2::end(r))
+		)
+
+		SizedRange{R}
+		constexpr difference_type_t<iterator_t<R>> operator()(R&& r) const
+		STL2_NOEXCEPT_RETURN(
+			static_cast<difference_type_t<iterator_t<R>>>(__stl2::size(r))
+		)
+	};
+	// Workaround GCC PR66957 by declaring this unnamed namespace inline.
+	inline namespace {
+		constexpr auto& distance = detail::static_const<__distance_fn>::value;
 	}
-
-	template <class I>
-	requires
-		SizedSentinel<I, I>
-		// Pre: [first, last) || [last, first)
-	constexpr difference_type_t<I> distance(I first, I last)
-	STL2_NOEXCEPT_RETURN(
-		last - first
-	)
 } STL2_CLOSE_NAMESPACE
 
 #endif

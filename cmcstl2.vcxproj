@@ -182,7 +182,6 @@
     <ClInclude Include="include\stl2\detail\iterator\basic_iterator.hpp" />
     <ClInclude Include="include\stl2\detail\iterator\common_iterator.hpp" />
     <ClInclude Include="include\stl2\detail\iterator\counted_iterator.hpp" />
-    <ClInclude Include="include\stl2\detail\iterator\dangling.hpp" />
     <ClInclude Include="include\stl2\detail\iterator\default_sentinel.hpp" />
     <ClInclude Include="include\stl2\detail\iterator\increment.hpp" />
     <ClInclude Include="include\stl2\detail\iterator\istreambuf_iterator.hpp" />
@@ -204,7 +203,7 @@
     <ClInclude Include="include\stl2\detail\iterator\move_iterator.hpp" />
     <ClInclude Include="include\stl2\detail\range\concepts.hpp" />
     <ClInclude Include="include\stl2\detail\range\access.hpp" />
-    <ClInclude Include="include\stl2\detail\range\primitives.hpp" />
+    <ClInclude Include="include\stl2\detail\range\begin_end_size.hpp" />
     <ClInclude Include="include\stl2\detail\temporary_vector.hpp" />
     <ClInclude Include="include\stl2\detail\tuple_like.hpp" />
     <ClInclude Include="include\stl2\detail\variant\fwd.hpp" />

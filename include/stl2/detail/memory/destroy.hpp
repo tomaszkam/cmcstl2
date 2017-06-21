@@ -19,7 +19,6 @@
 #include <stl2/detail/concepts/object.hpp>
 #include <stl2/detail/iterator/concepts.hpp>
 #include <stl2/detail/iterator/counted_iterator.hpp>
-#include <stl2/detail/iterator/dangling.hpp>
 #include <stl2/detail/memory/addressof.hpp>
 #include <stl2/detail/memory/concepts.hpp>
 #include <stl2/detail/range/access.hpp>

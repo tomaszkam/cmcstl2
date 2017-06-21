@@ -36,7 +36,6 @@
 #include <stl2/detail/iterator/unreachable.hpp>
 #include <stl2/detail/range/access.hpp>
 #include <stl2/detail/range/concepts.hpp>
-#include <stl2/detail/range/primitives.hpp>
 #include <stl2/detail/range/range.hpp>
 
 #endif
