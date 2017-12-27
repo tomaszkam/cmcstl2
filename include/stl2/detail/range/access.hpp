@@ -556,7 +556,7 @@ STL2_OPEN_NAMESPACE {
 		namespace __cdata {
 			struct fn {
 				template <class R>
-					requires requires(const R& r) { __stl2::data(r); }
+				requires requires(const R& r) { __stl2::data(r); }
 				constexpr auto operator()(const R& r) const
 				STL2_NOEXCEPT_RETURN(__stl2::data(r))
 
@@ -575,7 +575,5 @@ STL2_OPEN_NAMESPACE {
 		}
 	}
 } STL2_CLOSE_NAMESPACE
-
-#undef STL2_TREAT_RVALUES_AS_CONST
 
 #endif
