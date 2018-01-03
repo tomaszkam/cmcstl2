@@ -138,6 +138,43 @@ void test() {
 }
 } // namespace begin_testing
 
+namespace rvalue_testing {
+struct S {};
+int* begin(S) { return nullptr; }
+int* end(S) { return nullptr; }
+
+void test() {
+	using __stl2::models::Same;
+
+	S s;
+	const S& cs = s;
+	static_assert(Same<int*, decltype(__stl2::begin(s))>);
+	static_assert(Same<int*, decltype(__stl2::begin(cs))>);
+	static_assert(Same<int*, decltype(__stl2::begin(std::move(s)))>);
+	static_assert(Same<int*, decltype(__stl2::cbegin(s))>);
+	static_assert(Same<int*, decltype(__stl2::cbegin(cs))>);
+	static_assert(Same<int*, decltype(__stl2::cbegin(std::move(s)))>);
+	static_assert(Same<int*, decltype(__stl2::end(s))>);
+	static_assert(Same<int*, decltype(__stl2::end(cs))>);
+	static_assert(Same<int*, decltype(__stl2::end(std::move(s)))>);
+	static_assert(Same<int*, decltype(__stl2::cend(s))>);
+	static_assert(Same<int*, decltype(__stl2::cend(cs))>);
+	static_assert(Same<int*, decltype(__stl2::cend(std::move(s)))>);
+	static_assert(Same<__stl2::reverse_iterator<int*>, decltype(__stl2::rbegin(s))>);
+	static_assert(Same<__stl2::reverse_iterator<int*>, decltype(__stl2::rbegin(cs))>);
+	static_assert(Same<__stl2::reverse_iterator<int*>, decltype(__stl2::rbegin(std::move(s)))>);
+	static_assert(Same<__stl2::reverse_iterator<int*>, decltype(__stl2::rend(s))>);
+	static_assert(Same<__stl2::reverse_iterator<int*>, decltype(__stl2::rend(cs))>);
+	static_assert(Same<__stl2::reverse_iterator<int*>, decltype(__stl2::rend(std::move(s)))>);
+	static_assert(Same<__stl2::reverse_iterator<int*>, decltype(__stl2::crbegin(s))>);
+	static_assert(Same<__stl2::reverse_iterator<int*>, decltype(__stl2::crbegin(cs))>);
+	static_assert(Same<__stl2::reverse_iterator<int*>, decltype(__stl2::crbegin(std::move(s)))>);
+	static_assert(Same<__stl2::reverse_iterator<int*>, decltype(__stl2::crend(s))>);
+	static_assert(Same<__stl2::reverse_iterator<int*>, decltype(__stl2::crend(cs))>);
+	static_assert(Same<__stl2::reverse_iterator<int*>, decltype(__stl2::crend(std::move(s)))>);
+}
+} // namespace rvalue_testing
+
 namespace X {
 template <class T, std::size_t N>
 	requires N != 0
@@ -203,6 +240,7 @@ int main() {
 	test_array(std::make_integer_sequence<int, 3>{});
 	test_array(std::make_integer_sequence<const int, 3>{});
 	begin_testing::test();
+	rvalue_testing::test();
 
 	return ::test_result();
 }

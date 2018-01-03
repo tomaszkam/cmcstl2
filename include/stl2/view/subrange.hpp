@@ -109,22 +109,22 @@ STL2_OPEN_NAMESPACE {
 			}
 
 			// Not to spec
-			template <ReferenceableRange R>
-			requires !StoreSize &&
+			template <class R>
+			requires !StoreSize && !Same<subrange, __uncvref<R>> && ReferenceableRange<R> &&
 				ConvertibleTo<iterator_t<R>, I> && ConvertibleTo<sentinel_t<R>, S>
 			constexpr subrange(R&& r)
 			: subrange{__stl2::begin(r), __stl2::end(r)} {}
 
 			// Not to spec
-			template <ReferenceableRange R>
-			requires StoreSize && SizedRange<R> &&
+			template <class R>
+			requires StoreSize && !Same<subrange, __uncvref<R>> && ReferenceableRange<R> && SizedRange<R> &&
 				ConvertibleTo<iterator_t<R>, I> && ConvertibleTo<sentinel_t<R>, S>
 			constexpr subrange(R&& r)
 			: subrange{__stl2::begin(r), __stl2::end(r), __stl2::distance(r)} {}
 
 			// Not to spec
-			template <ReferenceableRange R>
-			requires K == subrange_kind::sized &&
+			template <class R>
+			requires K == subrange_kind::sized && ReferenceableRange<R> &&
 				ConvertibleTo<iterator_t<R>, I> && ConvertibleTo<sentinel_t<R>, S>
 			constexpr subrange(R&& r, difference_type_t<I> n)
 			: subrange{__stl2::begin(r), __stl2::end(r), n} {
@@ -157,9 +157,19 @@ STL2_OPEN_NAMESPACE {
 			constexpr I begin() const noexcept(std::is_nothrow_copy_constructible_v<I>) {
 				return first_();
 			}
+			// Not to spec
+			friend constexpr I begin(subrange&& s) noexcept(std::is_nothrow_copy_constructible_v<I>) {
+				return s.first_();
+			}
+
 			constexpr S end() const noexcept(std::is_nothrow_copy_constructible_v<S>) {
 				return last_();
 			}
+			// Not to spec
+			friend constexpr S end(subrange&& s) noexcept(std::is_nothrow_copy_constructible_v<S>) {
+				return s.last_();
+			}
+
 			constexpr bool empty() const {
 				return first_() == last_();
 			}
@@ -238,12 +248,6 @@ STL2_OPEN_NAMESPACE {
 		template <Range R>
 		using safe_subrange_t =	__maybe_dangling<R, subrange<iterator_t<R>>>;
 	} // namespace ext
-
-	namespace detail {
-		// Not to spec
-		template <class I, class S, ext::subrange_kind K>
-		inline constexpr bool is_referenceable_range<ext::subrange<I, S, K>> = true;
-	}
 } STL2_CLOSE_NAMESPACE
 
 namespace std {

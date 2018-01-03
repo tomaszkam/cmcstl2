@@ -12,7 +12,6 @@
 #include <stl2/view/all.hpp>
 #include <stl2/view/move.hpp>
 #include <stl2/view/iota.hpp>
-#include <stl2/view/ref.hpp>
 #include <stl2/view/take_exactly.hpp>
 #include <stl2/detail/algorithm/count.hpp>
 #include <stl2/detail/algorithm/transform.hpp>

@@ -23,7 +23,7 @@ using namespace ranges;
 using namespace ranges::ext;
 
 template<Range Rng>
-safe_subrange_t<Rng> algorithm(Rng &&rng);
+safe_subrange_t<Rng> algorithm(Rng&& rng);
 
 int main()
 {

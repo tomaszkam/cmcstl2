@@ -281,14 +281,20 @@ STL2_OPEN_NAMESPACE {
 		constexpr bool ViewableRange<R> = true;
 	}
 
-	namespace detail {
-		template <class T>
-		inline constexpr bool is_referenceable_range = std::is_lvalue_reference_v<T>;
-	}
-
 	namespace ext {
 		template <class R>
-		concept bool ReferenceableRange = Range<R> && detail::is_referenceable_range<R>;
+		concept bool ReferenceableRange = Range<R> &&
+			(std::is_lvalue_reference_v<R> || (View<R> && requires(R&& r) {
+				{ __stl2::begin(static_cast<R&&>(r)) } -> Same<iterator_t<R>>;
+				{ __stl2::end(static_cast<R&&>(r)) } -> Same<sentinel_t<R>>;
+			}));
+	}
+
+	namespace models {
+		template <class R>
+		constexpr bool ReferenceableRange = false;
+		__stl2::ext::ReferenceableRange{R}
+		constexpr bool ReferenceableRange<R> = true;
 	}
 } STL2_CLOSE_NAMESPACE
 

@@ -27,7 +27,7 @@ struct not_ref_view : ranges::ref_view<Rng> {
 };
 #else
 #include <stl2/iterator.hpp>
-#include <stl2/view/ref.hpp>
+#include <stl2/view/all.hpp>
 #include <stl2/view/view_interface.hpp>
 
 namespace NS = ::__stl2;
