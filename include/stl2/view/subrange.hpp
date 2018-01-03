@@ -133,16 +133,18 @@ STL2_OPEN_NAMESPACE {
 				}
 			}
 
+			// Not to spec: explicit
 			template <_PairLikeConvertibleTo<I, S> PairLike>
 			requires !StoreSize
-			constexpr subrange(PairLike&& r)
+			explicit constexpr subrange(PairLike&& r)
 			: subrange{std::get<0>(static_cast<PairLike&&>(r)),
 				std::get<1>(static_cast<PairLike&&>(r))}
 			{}
 
+			// Not to spec: explicit
 			template <_PairLikeConvertibleTo<I, S> PairLike>
 			requires K == subrange_kind::sized
-			constexpr subrange(PairLike&& r, difference_type_t<I> n)
+			explicit constexpr subrange(PairLike&& r, difference_type_t<I> n)
 			: subrange{std::get<0>(static_cast<PairLike&&>(r)),
 				std::get<1>(static_cast<PairLike&&>(r)), n}
 			{}
@@ -194,12 +196,14 @@ STL2_OPEN_NAMESPACE {
 		template <Iterator I, Sentinel<I> S>
 		subrange(I, S, difference_type_t<I>) -> subrange<I, S, subrange_kind::sized>;
 
+		// Not to spec: explicit
 		template <_IteratorSentinelPair P>
-		subrange(P) ->
+		explicit subrange(P) ->
 			subrange<std::tuple_element_t<0, P>, std::tuple_element_t<1, P>>;
 
+		// Not to spec: explicit
 		template <_IteratorSentinelPair P>
-		subrange(P, difference_type_t<std::tuple_element_t<0, P>>) ->
+		explicit subrange(P, difference_type_t<std::tuple_element_t<0, P>>) ->
 			subrange<std::tuple_element_t<0, P>, std::tuple_element_t<1, P>, subrange_kind::sized>;
 
 		// Not to spec
