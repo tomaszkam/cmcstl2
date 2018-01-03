@@ -26,7 +26,7 @@ namespace ranges = __stl2;
 namespace {
 	template <ranges::Range Rng>
 	auto make_move_view(Rng&& rng) {
-		return ranges::ext::move_view<ranges::view::all_t<Rng>>{
+		return ranges::ext::move_view<ranges::ext::all_view<Rng>>{
 			ranges::view::all(std::forward<Rng>(rng))};
 	}
 
