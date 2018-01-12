@@ -36,5 +36,6 @@ int main() {
 		static_assert(models::ForwardRange<decltype(x)>);
 		static_assert(!models::BidirectionalRange<decltype(x)>);
 	}
- 	return test_result();
+
+	return test_result();
 }

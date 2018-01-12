@@ -38,5 +38,6 @@ int main() {
 		static_assert(!models::BidirectionalRange<decltype(x)>);
 		static_assert(models::Same<decltype(x), decltype(view::bounded(x))>);
 	}
- 	return test_result();
+
+	return test_result();
 }

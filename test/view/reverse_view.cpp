@@ -39,5 +39,6 @@ int main() {
 		static_assert(models::BidirectionalRange<decltype(x)>);
 		static_assert(!models::RandomAccessRange<decltype(x)>);
 	}
- 	return test_result();
+
+	return test_result();
 }
