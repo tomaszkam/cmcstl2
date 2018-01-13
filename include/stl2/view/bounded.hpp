@@ -23,17 +23,18 @@
 
 STL2_OPEN_NAMESPACE {
 	namespace ext {
-		template <View Rng>
-		requires !BoundedRange<Rng>
-		struct bounded_view : view_interface<bounded_view<Rng>> {
+		template </*View*/class Rng>
+		//requires !BoundedRange<Rng>
+		struct bounded_view /* : view_interface<bounded_view<Rng>> */ {
 		private:
 			Rng rng_;
 		public:
 			bounded_view() = default;
 
-			constexpr bounded_view(Rng rng)
+			explicit constexpr bounded_view(Rng rng)
 			: rng_(std::move(rng)) {}
 
+#if 0
 			template <ViewableRange O>
 			requires !BoundedRange<O> && _ConstructibleFromRange<Rng, O>
 			constexpr bounded_view(O&& o)
@@ -71,11 +72,14 @@ STL2_OPEN_NAMESPACE {
 
 			constexpr auto size() const requires SizedRange<const Rng>
 			{ return __stl2::size(rng_); }
+#endif
 		};
 
+#if 0
 		template <ViewableRange O>
 		requires !BoundedRange<O>
 		bounded_view(O&&) -> bounded_view<all_view<O>>;
+#endif
 	} // namespace ext
 
 	namespace view {
