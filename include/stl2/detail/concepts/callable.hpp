@@ -62,14 +62,14 @@ STL2_OPEN_NAMESPACE {
 			// The following 3 are checked redundantly, but are called out
 			// specifically for better error messages on concept check failure.
 			Invocable<F&, iter_value_t<Is>&...> &&
-			Invocable<F&, iter_reference_t<Is>...> &&
-			Invocable<F&, iter_common_reference_t<Is>...> &&
+			Invocable<F&, iter_reference_t<Is>...> //&&
+			//Invocable<F&, iter_common_reference_t<Is>...> &&
 			// redundantly checks the above 3 requirements
-			meta::_v<meta::invoke<
+			/*meta::_v<meta::invoke<
 				__iter_map_reduce_fn<
 					meta::bind_front<meta::quote<__callable_result_t>, F&>,
 					meta::quote<__common_reference>>,
-				Is...>>;
+				Is...>>*/;
 	}
 
 	template <class F, class I>
@@ -104,14 +104,14 @@ STL2_OPEN_NAMESPACE {
 			// The following 3 are checked redundantly, but are called out
 			// specifically for better error messages on concept check failure.
 			Predicate<F&, iter_value_t<Is>&...> &&
-			Predicate<F&, iter_reference_t<Is>...> &&
-			Predicate<F&, iter_common_reference_t<Is>...> &&
+			Predicate<F&, iter_reference_t<Is>...> /*&&
+			//Predicate<F&, iter_common_reference_t<Is>...> &&
 			// redundantly checks the above 3 requirements
 			meta::_v<meta::invoke<
 				__iter_map_reduce_fn<
 					meta::bind_front<meta::quote<__predicate>, F&>,
 					meta::quote<meta::strict_and>>,
-				Is...>>;
+				Is...>>*/;
 	}
 
 	template <class F, class I>
@@ -126,8 +126,8 @@ STL2_OPEN_NAMESPACE {
 		Relation<F&, iter_value_t<I1>&, iter_value_t<I2>&> &&
 		Relation<F&, iter_value_t<I1>&, iter_reference_t<I2>> &&
 		Relation<F&, iter_reference_t<I1>, iter_value_t<I2>&> &&
-		Relation<F&, iter_reference_t<I1>, iter_reference_t<I2>> &&
-		Relation<F&, iter_common_reference_t<I1>, iter_common_reference_t<I2>>;
+		Relation<F&, iter_reference_t<I1>, iter_reference_t<I2>>; /* &&
+		Relation<F&, iter_common_reference_t<I1>, iter_common_reference_t<I2>>;*/
 
 	template <class F, class I1, class I2 = I1>
 	concept bool IndirectStrictWeakOrder =
@@ -137,8 +137,8 @@ STL2_OPEN_NAMESPACE {
 		StrictWeakOrder<F&, iter_value_t<I1>&, iter_value_t<I2>&> &&
 		StrictWeakOrder<F&, iter_value_t<I1>&, iter_reference_t<I2>> &&
 		StrictWeakOrder<F&, iter_reference_t<I1>, iter_value_t<I2>&> &&
-		StrictWeakOrder<F&, iter_reference_t<I1>, iter_reference_t<I2>> &&
-		StrictWeakOrder<F&, iter_common_reference_t<I1>, iter_common_reference_t<I2>>;
+		StrictWeakOrder<F&, iter_reference_t<I1>, iter_reference_t<I2>>;/* &&
+		StrictWeakOrder<F&, iter_common_reference_t<I1>, iter_common_reference_t<I2>>; */
 
 	///////////////////////////////////////////////////////////////////////////
 	// projected [projected.indirectcallables]

@@ -55,7 +55,7 @@ STL2_OPEN_NAMESPACE {
 		Predicate<R, T, T> &&
 		Predicate<R, U, U> &&
 		Predicate<R, T, U> &&
-		Predicate<R, U, T> &&
+		Predicate<R, U, T>; /*&&
 		CommonReference<
 			const remove_reference_t<T>&,
 			const remove_reference_t<U>&> &&
@@ -66,7 +66,7 @@ STL2_OPEN_NAMESPACE {
 				const remove_reference_t<U>&>,
 			common_reference_t<
 				const remove_reference_t<T>&,
-				const remove_reference_t<U>&>>;
+				const remove_reference_t<U>&>>*/;
 
 	///////////////////////////////////////////////////////////////////////////
 	// StrictWeakOrder [concepts.lib.callables.strictweakorder]
